@@ -49,19 +49,17 @@ const CameraScreen = () => {
         to: fileUri,
       });
 
-      if(true){
+      if(false){
         Alert.alert('Bad photo. Please take it again');
         setModalVisible(false);
         navigation.navigate('CameraScreen'); // Navigate back after saving
 
-      }else if(false){
+      }else {
 
         setModalVisible(false);
         navigation.navigate('CameraScreen'); // Navigate back after saving
 
         navigation.navigate('Confirmation'); // Navigate back after saving
-      }else{
-
       }
     } catch (error) {
       console.error("Error saving photo:", error);
