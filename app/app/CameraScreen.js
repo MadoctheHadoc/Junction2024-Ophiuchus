@@ -49,15 +49,17 @@ const CameraScreen = () => {
         to: fileUri,
       });
 
-      if(false){
+      if(true){
         Alert.alert('Bad photo. Please take it again');
         setModalVisible(false);
-        navigation.goBack(); // Navigate back after saving
+        navigation.navigate('CameraScreen'); // Navigate back after saving
 
-      }else if(true){
-        Alert.alert('Good photo. Please verify text');
-        navigation.navigate('LoremScreen', { imageUri: photoUri });
+      }else if(false){
 
+        setModalVisible(false);
+        navigation.navigate('CameraScreen'); // Navigate back after saving
+
+        navigation.navigate('Confirmation'); // Navigate back after saving
       }else{
 
       }
