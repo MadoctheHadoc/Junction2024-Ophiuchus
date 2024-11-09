@@ -49,18 +49,18 @@ const CameraScreen = () => {
         to: fileUri,
       });
 
-      console.log('Photo saved at:', fileUri);
-      Alert.alert('Photo saved successfully!', `Saved to ${fileUri}`);
+      if(false){
+        Alert.alert('Bad photo. Please take it again');
+        setModalVisible(false);
+        navigation.goBack(); // Navigate back after saving
 
-      // Share the file if available
-      if (await Sharing.isAvailableAsync()) {
-        await Sharing.shareAsync(fileUri);
-      } else {
-        Alert.alert('Sharing is not available on this platform.');
+      }else if(true){
+        Alert.alert('Good photo. Please verify text');
+        navigation.navigate('LoremScreen', { imageUri: photoUri });
+
+      }else{
+
       }
-
-      setModalVisible(false);
-      navigation.goBack(); // Navigate back after saving
     } catch (error) {
       console.error("Error saving photo:", error);
       Alert.alert('Error', 'Could not save the photo. Please try again.');
