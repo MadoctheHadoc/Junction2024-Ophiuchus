@@ -113,7 +113,11 @@ npx react-native run-android
 npx react-native run-ios
 
 ## 🤝 Team
+
 Rohit Binu
+
 Madoc Karthaus
+
 Alexandra Muntean
+
 Tunay Ata Gok
