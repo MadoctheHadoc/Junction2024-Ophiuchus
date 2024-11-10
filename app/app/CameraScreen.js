@@ -3,7 +3,6 @@ import { Text, View, Pressable, Modal, Image, TextInput, StyleSheet, Alert } fro
 import { Camera, CameraType } from 'expo-camera/legacy';
 import { useNavigation } from '@react-navigation/native';
 import * as FileSystem from 'expo-file-system';
-import * as Sharing from 'expo-sharing';
 
 const CameraScreen = () => {
   const [hasPermission, setHasPermission] = useState(null);
@@ -23,18 +22,18 @@ const CameraScreen = () => {
   const takePicture = async () => {
     if (cameraRef.current) {
       const photo = await cameraRef.current.takePictureAsync();
-      setPhotoUri(photo.uri);  // Store the photo URI
+      setPhotoUri(photo.uri);  // Store the temporary photo URI
       setModalVisible(true);   // Show the save prompt modal
     }
   };
 
   const savePhoto = async () => {
     try {
-      // Define the directory and file path
+      // Define the custom directory and file path in the document directory
       const devicesDir = `${FileSystem.documentDirectory}devices`;
       const fileUri = `${devicesDir}/${photoName || 'photo'}.jpg`;
 
-      // Ensure the devices directory exists
+      // Ensure the custom devices directory exists
       const dirInfo = await FileSystem.getInfoAsync(devicesDir);
       if (!dirInfo.exists) {
         await FileSystem.makeDirectoryAsync(devicesDir, { intermediates: true });
@@ -43,27 +42,83 @@ const CameraScreen = () => {
         console.log('Directory already exists:', devicesDir);
       }
 
-      // Move the photo to the devices directory with a .jpg extension
+      // Move the photo from the temporary location to the custom directory
       await FileSystem.moveAsync({
         from: photoUri,
         to: fileUri,
       });
 
-      if(false){
-        Alert.alert('Bad photo. Please take it again');
-        setModalVisible(false);
-        navigation.navigate('CameraScreen'); // Navigate back after saving
 
-      }else {
+      setModalVisible(false);
 
-        setModalVisible(false);
-        navigation.navigate('CameraScreen'); // Navigate back after saving
+      // Send the image to the server
+      await uploadPhoto(fileUri);
 
-        navigation.navigate('Confirmation'); // Navigate back after saving
-      }
     } catch (error) {
       console.error("Error saving photo:", error);
       Alert.alert('Error', 'Could not save the photo. Please try again.');
+    }
+  };
+
+  const uploadPhoto = async (fileUri) => {
+    try {
+      console.log('Uploading photo:', fileUri);
+      // Read the file as base64
+      const base64Image = await FileSystem.readAsStringAsync(fileUri, {
+        encoding: FileSystem.EncodingType.Base64,
+      });
+
+      const fetchWithTimeout = async (url, options, timeout = 30000) => {
+        return Promise.race([
+          fetch(url, options),
+          new Promise((_, reject) =>
+            setTimeout(() => reject(new Error('Request timed out')), timeout)
+          ),
+        ]);
+      };
+
+
+
+      // Send the image to the server
+      try {
+        const response = await fetchWithTimeout('http://10.87.0.252/upload_archi_image_to_iris', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: "Hello"
+          // JSON.stringify({
+          //   image: base64Image, // Send the base64-encoded image
+          //   filename: fileUri.split('/').pop(), // Extract file name
+          // }),
+        });
+
+        if (!response.ok) {
+          throw new Error('Network response was not ok');
+        }
+
+        const responseData = await response.json();
+        console.log('Response:', responseData);
+      } catch (error) {
+        if (error.message === 'Request timed out') {
+          Alert.alert(
+            'Error',
+            'The request timed out. Please try again.',
+            [{ text: 'OK', onPress: () => console.log('OK Pressed') }],
+            { cancelable: false }
+          );
+        } else {
+          Alert.alert(
+            'Error',
+            'An error occurred. Please try again.',
+            [{ text: 'OK', onPress: () => console.log('OK Pressed') }],
+            { cancelable: false }
+          );
+        }
+      }
+    } catch (error) {
+      console.error("Error uploading photo:", error);
+      Alert.alert('Error', 'Could not upload the photo. Please try again.');
     }
   };
 
