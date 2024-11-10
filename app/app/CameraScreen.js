@@ -3,6 +3,7 @@ import { Text, View, Pressable, Modal, Image, TextInput, StyleSheet, Alert } fro
 import { Camera, CameraType } from 'expo-camera/legacy';
 import { useNavigation } from '@react-navigation/native';
 import * as FileSystem from 'expo-file-system';
+import Globals from './globals';
 
 const CameraScreen = () => {
   const [hasPermission, setHasPermission] = useState(null);
@@ -116,6 +117,57 @@ const CameraScreen = () => {
         }
         throw error;
       }
+
+      const responseData = await response.json();
+      console.log('Upload successful:', responseData);
+      Alert.alert(
+        'Success',
+        'Image uploaded successfully',
+        [{ text: 'OK', onPress: () => console.log('OK Pressed') }],
+        { cancelable: false }
+      );
+  
+
+      console.log(responseData);
+      // if(Array.isArray(responseData)) {
+      //   responseData.forEach((str, index) => {
+      //     Alert.alert(`String ${index + 1}:`, str);
+      //   });
+      // }
+        // Case 1: responseData is a list of strings, handle the array of strings   
+      const { manufacturer, model, serial_number, installation_date, equipment_name } = responseData;
+      if (manufacturer !== null) {
+        Globals.setManufacturer(manufacturer);
+      }
+      if (model !== null) {
+        Globals.setModel(model);
+      }
+      if (serial_number !== null) {
+        Globals.setSerialNumber(serial_number);
+      }
+      if (installation_date !== null) {
+        Globals.setInstallationDate(installation_date);
+      }
+      if (equipment_name !== null) {
+        Globals.setEquipmentName(equipment_name);
+      }
+      
+      const all5There = !(manufacturer === null || manufacturer === "") && !(model === null || model === "")
+            && !(serial_number === null || serial_number === "") && !(equipment_name === null || equipment_name === "")
+            && !(installation_date === null || installation_date === "");
+      const all3There = !(manufacturer === null || manufacturer === "") && !(model === null || model === "") && !(serial_number === null || serial_number === "");
+
+      if (all5There) {
+        navigation.navigate('Confirmation');
+
+      } else if (all3There) {
+        Globals.WARNING = 'true';
+        navigation.navigate('Confirmation');
+      } else {
+        Alert.alert('Retake photo!');
+        navigation.navigate('CameraScreen');
+      }
+
     } catch (error) {
       console.error("Error preparing photo upload:", error);
       Alert.alert('Error', 'Could not prepare the photo for upload. Please try again.');
