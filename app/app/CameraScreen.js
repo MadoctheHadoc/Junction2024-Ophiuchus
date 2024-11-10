@@ -3,6 +3,7 @@ import { Text, View, Pressable, Modal, Image, TextInput, StyleSheet, Alert } fro
 import { Camera, CameraType } from 'expo-camera/legacy';
 import { useNavigation } from '@react-navigation/native';
 import * as FileSystem from 'expo-file-system';
+import Globals from './globals';
 
 const CameraScreen = () => {
   const [hasPermission, setHasPermission] = useState(null);
@@ -111,6 +112,21 @@ const CameraScreen = () => {
       // }
         // Case 1: responseData is a list of strings, handle the array of strings   
       const { manufacturer, model, serial_number, installation_date, equipment_name } = responseData;
+      if (manufacturer !== null) {
+        Globals.setManufacturer(manufacturer);
+      }
+      if (model !== null) {
+        Globals.setModel(model);
+      }
+      if (serial_number !== null) {
+        Globals.setSerialNumber(serial_number);
+      }
+      if (installation_date !== null) {
+        Globals.setInstallationDate(installation_date);
+      }
+      if (equipment_name !== null) {
+        Globals.setEquipmentName(equipment_name);
+      }
       
       const all5There = !(manufacturer === null || manufacturer === "") && !(model === null || model === "")
             && !(serial_number === null || serial_number === "") && !(equipment_name === null || equipment_name === "")
@@ -118,11 +134,14 @@ const CameraScreen = () => {
       const all3There = !(manufacturer === null || manufacturer === "") && !(model === null || model === "") && !(serial_number === null || serial_number === "");
 
       if (all5There) {
-         console.log("good!");
+        navigation.navigate('Confirmation');
+
       } else if (all3There) {
-          console.log("are u sure")
+        Globals.WARNING = 'true';
+        navigation.navigate('Confirmation');
       } else {
-          console.log("retake pls!")
+        Alert.alert('Retake photo!');
+        navigation.navigate('CameraScreen');
       }
 
     } catch (error) {
