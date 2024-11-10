@@ -101,7 +101,29 @@ const CameraScreen = () => {
         [{ text: 'OK', onPress: () => console.log('OK Pressed') }],
         { cancelable: false }
       );
-      return responseData;
+  
+
+      console.log(responseData);
+      // if(Array.isArray(responseData)) {
+      //   responseData.forEach((str, index) => {
+      //     Alert.alert(`String ${index + 1}:`, str);
+      //   });
+      // }
+        // Case 1: responseData is a list of strings, handle the array of strings   
+      const { manufacturer, model, serial_number, installation_date, equipment_name } = responseData;
+      
+      const all5There = !(manufacturer === null || manufacturer === "") && !(model === null || model === "")
+            && !(serial_number === null || serial_number === "") && !(equipment_name === null || equipment_name === "")
+            && !(installation_date === null || installation_date === "");
+      const all3There = !(manufacturer === null || manufacturer === "") && !(model === null || model === "") && !(serial_number === null || serial_number === "");
+
+      if (all5There) {
+         console.log("good!");
+      } else if (all3There) {
+          console.log("are u sure")
+      } else {
+          console.log("retake pls!")
+      }
 
     } catch (error) {
       console.error('Upload error:', error);
