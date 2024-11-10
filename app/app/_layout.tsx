@@ -1,6 +1,7 @@
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
 import { useFonts } from 'expo-font';
 import { Stack } from 'expo-router';
+
 import * as SplashScreen from 'expo-splash-screen';
 import { useEffect } from 'react';
 import 'react-native-reanimated';
@@ -32,10 +33,9 @@ export default function RootLayout() {
         <Stack.Screen name="index" options={{ headerShown: false }} />
         <Stack.Screen name="InventoryScreen" options={{ title: 'Inventory' }} />
         <Stack.Screen name="CameraScreen" options={{ title: 'Capture Device Label' }} />
-        <Stack.Screen
-          name="LoremScreen"
-          options={{ title: 'Lorem Ipsum Screen' }}
-        />
+        <Stack.Screen name="Confirmation" options={{ title: 'Confirmation' }} />
+
+       
       </Stack>
     </ThemeProvider>
   );
