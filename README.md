@@ -70,29 +70,46 @@ python server.py
 ### Run the following commands in CLI
 
 1.Install Node.js and npm from nodejs.org
+
 2.Install Expo CLI
+
 npm install -g expo-cli
+
 3.Clone the repository
+
 git clone https://github.com/your-username/your-repo.git
+
 cd your-repo
+
 4.Install project dependencies
+
 npm install or yarn install
 
 Install additional dependencies
+
 npm install expo-camera expo-media-library @react-navigation/native @react-navigation/stack react-native-screens react-native-safe-area-context
+
 or yarn add expo-camera expo-media-library @react-navigation/native @react-navigation/stack react-native-screens react-native-safe-area-context
 
+
 Configure React Navigation
+
 npm install react-native-gesture-handler react-native-reanimated or
+
 yarn add react-native-gesture-handler react-native-reanimated
 
 Link native dependencies (for React Native CLI projects)
+
 npx react-native link
 
 Start the project
+
 expo start
+
 or
+
 npx react-native run-android
+
 npx react-native run-ios
 
 ## 🤝 Team
