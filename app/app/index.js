@@ -88,50 +88,49 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#FFFFFF',
     alignItems: 'center',
-    justifyContent: 'flex-start',
+    justifyContent: 'flex-start', // Align elements closer to the top
     paddingHorizontal: 16,
-    paddingTop: 60,
-    maxHeight: '100%', // Restrict container to top half of the screen
+    paddingTop: 60, // Give some space at the top for a cleaner look
   },
   logo: {
-    width: 250, // Adjusted for a smaller screen area
-    height: 250,
-    right: 20,
+    width: 500, // Reduced size for a more compact design
+    height: 500,
+    right: 20
   },
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     width: '85%',
-    height: 40,
+    height: 40, // Reduced height for a smaller, more compact input bar
     backgroundColor: 'rgba(30, 58, 95, 0.1)',
-    borderRadius: 20,
+    borderRadius: 20, // Smaller border radius for a sleeker look
     paddingHorizontal: 15,
     borderWidth: 1,
     borderColor: '#1e3a5f',
-    marginTop: -20, // Adjust vertical positioning
+    top:-100,
   },
   input: {
     flex: 1,
-    fontSize: 16,
+    fontSize: 16, // Reduced font size for a smaller input bar
     color: '#1e3a5f',
     backgroundColor: 'transparent',
   },
   arrowButton: {
-    paddingLeft: 8,
+    paddingLeft: 8, // Slightly reduced padding for a closer arrow button
   },
   suggestionsContainer: {
     width: '85%',
     backgroundColor: '#ffffff',
     borderRadius: 8,
-    maxHeight: 200,
-    elevation: 4,
-    shadowColor: '#000',
+    maxHeight: 200, // Limit height for scroll
+    elevation: 4, // Shadow for Android
+    shadowColor: '#000', // Shadow for iOS
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.2,
     shadowRadius: 2.5,
     borderWidth: 1,
-    marginTop: 10, // Adjusted positioning within limited space
-    borderColor: '#ddd',
+    top: -90,
+    borderColor: '#ddd', // Border for a more structured look
   },
   suggestionItem: {
     padding: 12,
@@ -143,6 +142,5 @@ const styles = StyleSheet.create({
     fontSize: 15,
   },
 });
-
 
 export default HomeScreen;

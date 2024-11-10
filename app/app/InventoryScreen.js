@@ -1,21 +1,31 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import { useNavigation, useRoute } from '@react-navigation/native';
+import { 
+  View, 
+  StyleSheet, 
+  TouchableOpacity, 
+  Image,
+  Dimensions,
+  Text  // Added Text import
+} from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 
 const InventoryScreen = () => {
-  const route = useRoute();
   const navigation = useNavigation();
-  const floor = route.params?.floor || "No floor selected"; // Default message if undefined
+  const screenWidth = Dimensions.get('window').width;
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Inventory for {floor}</Text>
-      {/* Floor plan and device markers would go here */}
+      <View style={styles.floorPlanContainer}>
+        <Image 
+          source={require('../assets/images/floor_plan.png')}  // Update this path to your floor plan image
+          style={styles.floorPlan}
+          resizeMode="contain"
+        />
+      </View>
 
-      {/* Red Add Button */}
       <TouchableOpacity
         style={styles.addButton}
-        onPress={() => navigation.navigate('CameraScreen')} // Navigate to CameraScreen
+        onPress={() => navigation.navigate('CameraScreen')}
       >
         <Text style={styles.addButtonText}>+</Text>
       </TouchableOpacity>
@@ -27,13 +37,19 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#1e3a5f',
-    alignItems: 'center',
-    justifyContent: 'center',
   },
-  title: {
-    fontSize: 24,
-    color: '#fff',
-    marginBottom: 20,
+  floorPlanContainer: {
+    flex: 1,
+    margin: 20,  // This adds padding around the floor plan
+    backgroundColor: 'white',  // White background for the floor plan
+    borderRadius: 10,  // Optional: rounded corners
+    padding: 10,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  floorPlan: {
+    width: '100%',
+    height: '100%',
   },
   addButton: {
     backgroundColor: 'red',
@@ -45,6 +61,14 @@ const styles = StyleSheet.create({
     position: 'absolute',
     bottom: 30,
     right: 30,
+    elevation: 5,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
   },
   addButtonText: {
     color: '#fff',
