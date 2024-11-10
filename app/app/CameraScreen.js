@@ -61,66 +61,73 @@ const CameraScreen = () => {
   };
 
   const uploadPhoto = async (fileUri) => {
+  try {
+    console.log('Uploading photo:', fileUri);
+    // Read the file as base64
+    const base64Image = await FileSystem.readAsStringAsync(fileUri, {
+      encoding: FileSystem.EncodingType.Base64,
+    });
+
+    const fetchWithTimeout = async (url, options, timeout = 30000) => {
+      return Promise.race([
+        fetch(url, options),
+        new Promise((_, reject) =>
+          setTimeout(() => reject(new Error('Request timed out')), timeout)
+        ),
+      ]);
+    };
+
+    // Send the image to the server
     try {
-      console.log('Uploading photo:', fileUri);
-      // Read the file as base64
-      const base64Image = await FileSystem.readAsStringAsync(fileUri, {
-        encoding: FileSystem.EncodingType.Base64,
+      const response = await fetchWithTimeout('http://10.87.0.252:5000/upload_archi_image_to_iris', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          image: base64Image
+        }),
       });
 
-      const fetchWithTimeout = async (url, options, timeout = 30000) => {
-        return Promise.race([
-          fetch(url, options),
-          new Promise((_, reject) =>
-            setTimeout(() => reject(new Error('Request timed out')), timeout)
-          ),
-        ]);
-      };
-
-
-
-      // Send the image to the server
-      try {
-        const response = await fetchWithTimeout('http://10.87.0.252/upload_archi_image_to_iris', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: "Hello"
-          // JSON.stringify({
-          //   image: base64Image, // Send the base64-encoded image
-          //   filename: fileUri.split('/').pop(), // Extract file name
-          // }),
-        });
-
-        if (!response.ok) {
-          throw new Error('Network response was not ok');
-        }
-
-        const responseData = await response.json();
-        console.log('Response:', responseData);
-      } catch (error) {
-        if (error.message === 'Request timed out') {
-          Alert.alert(
-            'Error',
-            'The request timed out. Please try again.',
-            [{ text: 'OK', onPress: () => console.log('OK Pressed') }],
-            { cancelable: false }
-          );
-        } else {
-          Alert.alert(
-            'Error',
-            'An error occurred. Please try again.',
-            [{ text: 'OK', onPress: () => console.log('OK Pressed') }],
-            { cancelable: false }
-          );
-        }
+      if (!response.ok) {
+        throw new Error(`Network response was not ok: ${response.status}`);
       }
+
+      const responseData = await response.json();
+      console.log('Upload successful:', responseData);
+      Alert.alert(
+        'Success',
+        'Image uploaded successfully',
+        [{ text: 'OK', onPress: () => console.log('OK Pressed') }],
+        { cancelable: false }
+      );
+      return responseData;
+
     } catch (error) {
-      console.error("Error uploading photo:", error);
-      Alert.alert('Error', 'Could not upload the photo. Please try again.');
+      console.error('Upload error:', error);
+      if (error.message === 'Request timed out') {
+        Alert.alert(
+          'Error',
+          'The request timed out. Please try again.',
+          [{ text: 'OK', onPress: () => console.log('OK Pressed') }],
+          { cancelable: false }
+        );
+      } else {
+        Alert.alert(
+          'Error',
+          'Failed to upload image. Please try again.',
+          [{ text: 'OK', onPress: () => console.log('OK Pressed') }],
+          { cancelable: false }
+        );
+      }
+      throw error;
     }
-  };
+  } catch (error) {
+    console.error("Error preparing photo upload:", error);
+    Alert.alert('Error', 'Could not prepare the photo for upload. Please try again.');
+    throw error;
+  }
+};
 
   if (hasPermission === null) {
     return <View />;
