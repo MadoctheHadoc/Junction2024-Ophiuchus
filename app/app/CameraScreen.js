@@ -10,7 +10,6 @@ const CameraScreen = () => {
   const [photoUri, setPhotoUri] = useState(null);
   const [modalVisible, setModalVisible] = useState(false);
   const [photoName, setPhotoName] = useState('');
-  const [isCameraActive, setIsCameraActive] = useState(true);
   const cameraRef = useRef(null);
   const navigation = useNavigation();
 
@@ -24,30 +23,38 @@ const CameraScreen = () => {
   const takePicture = async () => {
     if (cameraRef.current) {
       const photo = await cameraRef.current.takePictureAsync();
-      setPhotoUri(photo.uri);
-      setModalVisible(true);
-      setIsCameraActive(false); // Disable camera after taking picture
+      setPhotoUri(photo.uri);  // Store the temporary photo URI
+      setModalVisible(true);   // Show the save prompt modal
     }
   };
 
   const savePhoto = async () => {
     try {
+      // Define the custom directory and file path in the document directory
       const devicesDir = `${FileSystem.documentDirectory}devices`;
       const fileUri = `${devicesDir}/${photoName || 'photo'}.jpg`;
 
+      // Ensure the custom devices directory exists
       const dirInfo = await FileSystem.getInfoAsync(devicesDir);
       if (!dirInfo.exists) {
         await FileSystem.makeDirectoryAsync(devicesDir, { intermediates: true });
         console.log('Directory created at:', devicesDir);
+      } else {
+        console.log('Directory already exists:', devicesDir);
       }
 
+      // Move the photo from the temporary location to the custom directory
       await FileSystem.moveAsync({
         from: photoUri,
         to: fileUri,
       });
 
+
       setModalVisible(false);
+
+      // Send the image to the server
       await uploadPhoto(fileUri);
+
     } catch (error) {
       console.error("Error saving photo:", error);
       Alert.alert('Error', 'Could not save the photo. Please try again.');
@@ -55,67 +62,36 @@ const CameraScreen = () => {
   };
 
   const uploadPhoto = async (fileUri) => {
+  try {
+    console.log('Uploading photo:', fileUri);
+    // Read the file as base64
+    const base64Image = await FileSystem.readAsStringAsync(fileUri, {
+      encoding: FileSystem.EncodingType.Base64,
+    });
+
+    const fetchWithTimeout = async (url, options, timeout = 30000) => {
+      return Promise.race([
+        fetch(url, options),
+        new Promise((_, reject) =>
+          setTimeout(() => reject(new Error('Request timed out')), timeout)
+        ),
+      ]);
+    };
+
+    // Send the image to the server
     try {
-      console.log('Uploading photo:', fileUri);
-      const base64Image = await FileSystem.readAsStringAsync(fileUri, {
-        encoding: FileSystem.EncodingType.Base64,
+      const response = await fetchWithTimeout('http://10.87.0.252:5000/upload_archi_image_to_iris', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          image: base64Image
+        }),
       });
 
-      const fetchWithTimeout = async (url, options, timeout = 30000) => {
-        return Promise.race([
-          fetch(url, options),
-          new Promise((_, reject) =>
-            setTimeout(() => reject(new Error('Request timed out')), timeout)
-          ),
-        ]);
-      };
-
-      try {
-        const response = await fetchWithTimeout('http://10.87.0.252:5000/upload_archi_image_to_iris', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            image: base64Image
-          }),
-        });
-
-        if (!response.ok) {
-          throw new Error(`Network response was not ok: ${response.status}`);
-        }
-
-        const responseData = await response.json();
-        console.log('Upload successful:', responseData);
-        Alert.alert(
-          'Success',
-          'Image uploaded successfully',
-          [{ text: 'OK', onPress: () => {
-            console.log('OK Pressed');
-            setIsCameraActive(true); // Re-enable camera after successful upload
-          }}],
-          { cancelable: false }
-        );
-        return responseData;
-
-      } catch (error) {
-        console.error('Upload error:', error);
-        if (error.message === 'Request timed out') {
-          Alert.alert(
-            'Error',
-            'The request timed out. Please try again.',
-            [{ text: 'OK', onPress: () => setIsCameraActive(true) }],
-            { cancelable: false }
-          );
-        } else {
-          Alert.alert(
-            'Error',
-            'Failed to upload image. Please try again.',
-            [{ text: 'OK', onPress: () => setIsCameraActive(true) }],
-            { cancelable: false }
-          );
-        }
-        throw error;
+      if (!response.ok) {
+        throw new Error(`Network response was not ok: ${response.status}`);
       }
 
       const responseData = await response.json();
@@ -169,12 +145,30 @@ const CameraScreen = () => {
       }
 
     } catch (error) {
-      console.error("Error preparing photo upload:", error);
-      Alert.alert('Error', 'Could not prepare the photo for upload. Please try again.');
-      setIsCameraActive(true);
+      console.error('Upload error:', error);
+      if (error.message === 'Request timed out') {
+        Alert.alert(
+          'Error',
+          'The request timed out. Please try again.',
+          [{ text: 'OK', onPress: () => console.log('OK Pressed') }],
+          { cancelable: false }
+        );
+      } else {
+        Alert.alert(
+          'Error',
+          'Failed to upload image. Please try again.',
+          [{ text: 'OK', onPress: () => console.log('OK Pressed') }],
+          { cancelable: false }
+        );
+      }
       throw error;
     }
-  };
+  } catch (error) {
+    console.error("Error preparing photo upload:", error);
+    Alert.alert('Error', 'Could not prepare the photo for upload. Please try again.');
+    throw error;
+  }
+};
 
   if (hasPermission === null) {
     return <View />;
@@ -185,29 +179,21 @@ const CameraScreen = () => {
 
   return (
     <View style={{ flex: 1 }}>
-      {isCameraActive ? (
-        <Camera style={{ flex: 1 }} type={CameraType.back} ref={cameraRef}>
-          <View style={styles.cameraOverlay}>
-            <Pressable style={styles.captureButton} onPress={takePicture}>
-              <Text style={styles.captureButtonText}>Take Picture</Text>
-            </Pressable>
-          </View>
-        </Camera>
-      ) : (
-        <View style={styles.previewContainer}>
-          {photoUri && <Image source={{ uri: photoUri }} style={styles.fullScreenImage} />}
+      <Camera style={{ flex: 1 }} type={CameraType.back} ref={cameraRef}>
+        <View style={styles.cameraOverlay}>
+          <Pressable style={styles.captureButton} onPress={takePicture}>
+            <Text style={styles.captureButtonText}>Take Picture</Text>
+          </Pressable>
         </View>
-      )}
+      </Camera>
 
+      {/* Modal for Save Prompt */}
       {photoUri && (
         <Modal
           animationType="slide"
           transparent={true}
           visible={modalVisible}
-          onRequestClose={() => {
-            setModalVisible(false);
-            setIsCameraActive(true);
-          }}
+          onRequestClose={() => setModalVisible(false)}
         >
           <View style={styles.modalContainer}>
             <View style={styles.modalContent}>
@@ -224,10 +210,7 @@ const CameraScreen = () => {
                 </Pressable>
                 <Pressable
                   style={styles.cancelButton}
-                  onPress={() => {
-                    setModalVisible(false);
-                    setIsCameraActive(true);
-                  }}
+                  onPress={() => setModalVisible(false)}
                 >
                   <Text style={styles.buttonText}>Cancel</Text>
                 </Pressable>
@@ -246,14 +229,6 @@ const styles = StyleSheet.create({
     backgroundColor: 'transparent',
     justifyContent: 'flex-end',
     alignItems: 'center',
-  },
-  previewContainer: {
-    flex: 1,
-    backgroundColor: '#f0f0f0', // Light gray background for preview
-  },
-  fullScreenImage: {
-    flex: 1,
-    resizeMode: 'contain',
   },
   captureButton: {
     backgroundColor: 'red',
